@@ -23,9 +23,9 @@ namespace Odyssey.src.core.Queries
             _dbConnection = dbConnection;
         }
 
-        public IEnumerable<T> Query<T>(Expression<Func<T, object>> column = null, Expression<Func<T, bool>> where = null)
+        public IEnumerable<T> Query<T>(Expression<Func<T, object>> column = null, Expression<Func<T, bool>> where = null,JoinClause join = null)
         {
-            _BaseQuery = queryBuilder.BuildSelectQuery(column, where);
+            _BaseQuery = queryBuilder.BuildSelectQuery(column, where,join);
 
             IEnumerable<T> listQuery = Execute<T>();
             return listQuery;
