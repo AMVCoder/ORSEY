@@ -1,4 +1,4 @@
-![Logo](Titulo.png)
+<p align="center"> <img src="Titulo.png" alt="Logo"> </p>
 
 # OdysseyNet
 
