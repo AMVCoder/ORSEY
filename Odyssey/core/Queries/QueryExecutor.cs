@@ -31,6 +31,15 @@ namespace Odyssey.src.core.Queries
             return listQuery;
         }
 
+        public IEnumerable<T> Query<T>(Expression<Func<T, object>> column = null, Expression<Func<T, bool>> where = null, List<JoinClause> join = null)
+        {
+            _BaseQuery = queryBuilder.BuildSelectQuery(column, where, join);
+
+            IEnumerable<T> listQuery = Execute<T>();
+            return listQuery;
+        }
+
+
         public void Insert<T>(T entity)
         {
             var (queryInsert, props) = queryBuilder.BuildInsertQuery(entity);

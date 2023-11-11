@@ -66,6 +66,34 @@ namespace Odyssey.core.Queries
             return sqlBuilder.ToString();
         }
 
+        public string BuildSelectQuery<T>(Expression<Func<T, object>> columnSelector = null, Expression<Func<T, bool>> wherePredicate = null, List<JoinClause> joinClause = null)
+        {
+
+            string tableName = typeof(T).Name;
+            string columns = columnSelector != null ? GetColumns(columnSelector) : "*";
+
+            var sqlBuilder = new StringBuilder($"SELECT {columns} FROM [{tableName}]");
+
+
+            if (joinClause != null)
+            {
+                foreach(var clause in joinClause)
+                {
+                    string joinBuild = BuilJoin(clause);
+                    sqlBuilder.Append($"{joinBuild}");
+                }
+               
+            }
+
+            if (wherePredicate != null)
+            {
+                string whereClause = GetWhereClause(wherePredicate);
+                sqlBuilder.Append($" WHERE {whereClause}");
+            }
+
+            return sqlBuilder.ToString();
+        }
+
         private string BuilJoin(JoinClause join)
         {
            return join.BuildJoinClause();
