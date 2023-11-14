@@ -43,10 +43,11 @@ namespace Odyssey.src.core.Queries
             ExecuteNonQuery(queryUpdate, props, entity);
         }
 
-        public void Delete<T>(int id)
+        public void Delete<T>(int id) where T : class
         {
             var (queryDelete, keyColumnName) = queryBuilder.BuildDeleteQuery<T>(id);
-            ExecuteNonQuery(queryDelete, new[] { typeof(T).GetProperty(keyColumnName) }, id);
+            var properties = typeof(T).GetProperties().Where(p => p.Name == keyColumnName);
+            ExecuteNonQuery(queryDelete, properties, id);
         }
 
         private IEnumerable<T> Execute<T>()
@@ -93,19 +94,33 @@ namespace Odyssey.src.core.Queries
         }
         private void AddParametersToCommand(IDbCommand command, IEnumerable<PropertyInfo>? properties, object? entity)
         {
-            if (properties != null && entity != null)
+            if (properties == null || entity == null)
+            {
+                throw new ArgumentNullException("Los parámetros 'properties' y 'entity' no pueden ser nulos.");
+            }
+
+            if (properties.Count() == 1)
+            {
+                var prop = properties.First();
+                if (prop != null)
+                {
+                    queryBuilder.AddDeleteParameter(command, prop, entity);
+                }
+            }
+            else
             {
                 foreach (var prop in properties)
                 {
                     if (prop != null)
                     {
-                        var parameter = command.CreateParameter();
-                        parameter.ParameterName = $"@{prop.Name}";
-                        parameter.Value = prop.GetValue(entity) ?? DBNull.Value;
-                        command.Parameters.Add(parameter);
+                        queryBuilder.AddUpdateOrInsertParameter(command, prop, entity);
                     }
                 }
             }
         }
+
+       
+
+
     }
 }

@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Odyssey.core.Queries
 {
-    public class QueryBuilder
+    internal class QueryBuilder
     {
         private readonly Dictionary<ExpressionType, string> _sqlOperationDictionary = new Dictionary<ExpressionType, string>
         {
@@ -82,11 +82,11 @@ namespace Odyssey.core.Queries
             return (sql, props.Concat(new[] { GetKeyProperty<T>() }));
         }
 
-        public (string SqlQuery, string Key) BuildDeleteQuery<T>(int id)
+        public (string SqlQuery, string KeyColumnName) BuildDeleteQuery<T>(int id) where T : class
         {
             var keyColumnName = GetKeyColumnName<T>();
             var tableName = typeof(T).Name;
-            var sql = $"DELETE FROM {tableName} WHERE {keyColumnName} = @id";
+            var sql = $"DELETE FROM {tableName} WHERE {keyColumnName} = {id}";
             return (sql, keyColumnName);
         }
 
@@ -261,6 +261,23 @@ namespace Odyssey.core.Queries
         {
             return GetKeyProperty<T>().Name;
         }
+
+        internal void AddDeleteParameter(IDbCommand command, PropertyInfo prop, object entity)
+        {
+            var parameter = command.CreateParameter();
+            parameter.ParameterName = $"@{prop.Name}";
+            parameter.Value = entity ?? DBNull.Value;
+            command.Parameters.Add(parameter);
+        }
+
+        internal void AddUpdateOrInsertParameter(IDbCommand command, PropertyInfo prop, object entity)
+        {
+            var parameter = command.CreateParameter();
+            parameter.ParameterName = $"@{prop.Name}";
+            parameter.Value = prop.GetValue(entity) ?? DBNull.Value;
+            command.Parameters.Add(parameter);
+        }
+
     }
 
 }
